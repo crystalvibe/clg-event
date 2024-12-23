@@ -3,8 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "../contexts/AuthContext";
+import { Box } from "@mui/material";
+import { Button as MuiButton } from "@mui/material";
 
 const ADMIN_CREDENTIALS = {
   username: "admin",
@@ -16,6 +19,7 @@ export default function Index() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,97 +65,120 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-slate-50">
-      {/* Header */}
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-center">
-          <div className="flex items-center">
-            <img 
-              src="/image.png"
-              alt="College Logo" 
-              className="h-16 w-16 object-cover rounded-lg shadow-sm"
-            />
-            <div className="ml-4">
-              <h1 className="text-2xl font-bold text-gray-800 text-center">
-                College Event Management System
-              </h1>
+    <Box>
+      <div className="min-h-screen bg-gradient-to-b from-red-50 to-slate-50">
+        {/* Header */}
+        <header className="bg-white shadow-md">
+          <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center">
+              <img 
+                src="/image.png"
+                alt="College Logo" 
+                className="h-16 w-16 object-cover rounded-lg shadow-sm"
+              />
+              <div className="ml-4">
+                <h1 className="text-2xl font-bold text-gray-800">
+                  College Event Management System
+                </h1>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {/* Navigation Buttons */}
+              <Button
+                asChild
+                className="bg-red-700 hover:bg-red-800 text-white"
+              >
+                <Link to="/dashboard">
+                  Dashboard
+                </Link>
+              </Button>
+              {user?.isAdmin && (
+                <MuiButton
+                  component={Link}
+                  to="/admin"
+                  variant="contained"
+                  color="primary"
+                >
+                  Admin Settings
+                </MuiButton>
+              )}
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-16">
-        <Card className="max-w-md mx-auto p-8 shadow-xl bg-white/95 backdrop-blur">
-          <h2 className="text-2xl font-semibold text-center mb-8 text-gray-800">
-            Welcome Back
-          </h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <Input 
-                type="text" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
-                className="w-full"
-                required
-              />
-            </div>
+        {/* Main Content */}
+        <main className="container mx-auto px-4 py-16">
+          <Card className="max-w-md mx-auto p-8 shadow-xl bg-white/95 backdrop-blur">
+            <h2 className="text-2xl font-semibold text-center mb-8 text-gray-800">
+              Welcome Back
+            </h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Username
+                </label>
+                <Input 
+                  type="text" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                  className="w-full"
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Role
-              </label>
-              <Select 
-                value={role} 
-                onValueChange={setRole}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Role
+                </label>
+                <Select 
+                  value={role} 
+                  onValueChange={setRole}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="view">View Only</SelectItem>
+                    <SelectItem value="edit">Edit</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <Input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={role === "view" ? "Password not required" : "Enter your password"}
+                  disabled={role === "view"}
+                  className="w-full"
+                  required={role === "edit"}
+                />
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full bg-red-700 hover:bg-red-800 text-white"
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="view">View Only</SelectItem>
-                  <SelectItem value="edit">Edit</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                Sign In
+              </Button>
+            </form>
+          </Card>
+        </main>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <Input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={role === "view" ? "Password not required" : "Enter your password"}
-                disabled={role === "view"}
-                className="w-full"
-                required={role === "edit"}
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-red-700 hover:bg-red-800 text-white"
-            >
-              Sign In
-            </Button>
-          </form>
-        </Card>
-      </main>
-
-      {/* Footer */}
-      <footer className="fixed bottom-0 w-full bg-white border-t">
-        <div className="container mx-auto px-4 py-4 text-center text-gray-600">
-          © 2024 College Event Management System. All rights reserved.
-        </div>
-      </footer>
-    </div>
+        {/* Footer */}
+        <footer className="fixed bottom-0 w-full bg-white border-t">
+          <div className="container mx-auto px-4 py-4 text-center text-gray-600">
+            © 2024 College Event Management System. All rights reserved.
+          </div>
+        </footer>
+      </div>
+    </Box>
   );
 }

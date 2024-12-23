@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EVENT_CATEGORIES, EVENT_SUBCATEGORIES, addNewCategory, addNewSubcategory } from "@/constants/eventCategories";
+import { EVENT_CATEGORIES, EVENT_SUBCATEGORIES, addNewCategory, addNewSubcategory, DEFAULT_CATEGORIES } from "@/constants/eventCategories";
 import { toast } from "@/components/ui/use-toast";
 
 interface BasicEventDetailsProps {
@@ -33,18 +33,12 @@ export function BasicEventDetails({
   userRole,
   mode
 }: BasicEventDetailsProps) {
-  const categoryOptions = [
-    "Technical",
-    "Cultural",
-    "Sports",
-    "Workshop",
-    "Seminar"
-  ];
+  const categoryOptions = DEFAULT_CATEGORIES;
 
   const getEventTypes = () => {
-    if (category === "Other") return [];
-    const baseTypes = EVENT_SUBCATEGORIES[category] || [];
-    return baseTypes.filter(type => type.toLowerCase() !== "other");
+    if (!category) return [];
+    const types = EVENT_SUBCATEGORIES[category] || [];
+    return types.filter(type => type !== "Other");
   };
 
   const handleCategoryChange = (value: string) => {

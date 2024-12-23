@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { initDB, saveEvents, getEvents } from '@/utils/indexedDB';
+import { initDB, saveEvents, getEvents, getAllCategories, getAllEventTypes } from '@/utils/indexedDB';
 import { Event as CustomEvent } from "@/types/event";
 
 interface MediaItem {
@@ -22,8 +22,10 @@ interface EventContextType {
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
-export function EventProvider({ children }: { children: ReactNode }) {
+export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [events, setEvents] = useState<CustomEvent[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [eventTypes, setEventTypes] = useState<string[]>([]);
 
   useEffect(() => {
     // Load events when component mounts
@@ -75,6 +77,26 @@ export function EventProvider({ children }: { children: ReactNode }) {
     // Run cleanup monthly
     const interval = setInterval(cleanup, 30 * 24 * 60 * 60 * 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const loadedCategories = await getAllCategories();
+      const loadedEventTypes = await getAllEventTypes();
+      setCategories(loadedCategories);
+      setEventTypes(loadedEventTypes);
+    };
+
+    loadData();
+    
+    // Set up event listeners for IndexedDB changes
+    window.addEventListener('categoriesUpdated', loadData);
+    window.addEventListener('eventTypesUpdated', loadData);
+
+    return () => {
+      window.removeEventListener('categoriesUpdated', loadData);
+      window.removeEventListener('eventTypesUpdated', loadData);
+    };
   }, []);
 
   const addEvent = async (newEvent: CustomEvent) => {
@@ -360,7 +382,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       {children}
     </EventContext.Provider>
   );
-}
+};
 
 export function useEvents() {
   const context = useContext(EventContext);

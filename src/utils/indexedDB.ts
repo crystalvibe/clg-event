@@ -1,18 +1,39 @@
+interface IDBDatabase {
+  transaction(storeName: string, mode: 'readonly' | 'readwrite'): IDBTransaction;
+}
+
 export const initDB = () => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('eventsDB', 2);
+    const request = indexedDB.open('eventsDB', 3);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = (event: any) => {
       const db = event.target.result;
+      
+      // Create events store if it doesn't exist
       if (!db.objectStoreNames.contains('events')) {
         const store = db.createObjectStore('events', { keyPath: 'id' });
         store.createIndex('date', 'date', { unique: false });
       }
+
+      // Create categories store if it doesn't exist
+      if (!db.objectStoreNames.contains('categories')) {
+        const store = db.createObjectStore('categories', { keyPath: 'name' });
+      }
+
+      // Create eventTypes store if it doesn't exist
+      if (!db.objectStoreNames.contains('eventTypes')) {
+        const store = db.createObjectStore('eventTypes', { keyPath: 'name' });
+      }
     };
   });
+};
+
+// Add openDB function to fix the 'Cannot find name openDB' error
+export const openDB = async (): Promise<IDBDatabase> => {
+  return initDB() as Promise<IDBDatabase>;
 };
 
 // Helper function to convert File to base64
@@ -141,4 +162,34 @@ const dbConfig = {
       { name: 'year', keyPath: 'year' }
     ]
   }]
+}; 
+
+export const getAllCategories = async (): Promise<string[]> => {
+  const db: any = await openDB();
+  const transaction = db.transaction('categories', 'readonly');
+  const store = transaction.objectStore('categories');
+  const categories = await store.getAll();
+  return categories.map((cat: { name: string }) => cat.name);
+};
+
+export const getAllEventTypes = async (): Promise<string[]> => {
+  const db: any = await openDB();
+  const transaction = db.transaction('eventTypes', 'readonly');
+  const store = transaction.objectStore('eventTypes');
+  const types = await store.getAll();
+  return types.map((type: { name: string }) => type.name);
+};
+
+export const addCategory = async (categoryName: string): Promise<void> => {
+  const db = await openDB();
+  const transaction = db.transaction('categories', 'readwrite');
+  const store = transaction.objectStore('categories');
+  await store.add({ name: categoryName });
+};
+
+export const addEventType = async (typeName: string): Promise<void> => {
+  const db = await openDB();
+  const transaction = db.transaction('eventTypes', 'readwrite');
+  const store = transaction.objectStore('eventTypes');
+  await store.add({ name: typeName });
 }; 

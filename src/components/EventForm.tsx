@@ -8,6 +8,7 @@ import { MediaUpload } from "./event-form/MediaUpload";
 import { toast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminOptionsDialog } from "./AdminOptionsDialog";
+import { DEFAULT_CATEGORIES, EVENT_SUBCATEGORIES } from "@/constants/eventCategories";
 
 interface EventFormProps {
   onSubmit: (eventData: any) => void;
@@ -82,27 +83,6 @@ export function EventForm({ onSubmit, initialData, mode, userRole, showOtherOpti
     });
   };
 
-  const categoryOptions = [
-    "Technical",
-    "Cultural",
-    "Sports",
-    "Workshop",
-    "Seminar"
-  ];
-
-  const eventTypeOptions = [
-    "College Level",
-    "Department Level",
-    "National Level",
-    "International Level"
-  ];
-
-  // Only add "Other" option for admin users
-  if (userRole === 'admin') {
-    categoryOptions.push("Other");
-    eventTypeOptions.push("Other");
-  }
-
   return (
     <div className="space-y-8 max-h-[70vh] overflow-y-auto px-1">
       <BasicEventDetails
@@ -141,76 +121,6 @@ export function EventForm({ onSubmit, initialData, mode, userRole, showOtherOpti
           setFormData={setFormData}
         />
       </div>
-
-      <div className="space-y-2">
-        <label>Category</label>
-        <div className="flex gap-2">
-          <Select
-            value={formData.category}
-            onValueChange={(value) => setFormData({ ...formData, category: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryOptions.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {userRole === 'admin' && (
-            <Button type="button" onClick={() => setShowCategoryDialog(true)}>
-              Add Category
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <label>Event Type</label>
-        <div className="flex gap-2">
-          <Select
-            value={formData.eventType}
-            onValueChange={(value) => setFormData({ ...formData, eventType: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select event type" />
-            </SelectTrigger>
-            <SelectContent>
-              {eventTypeOptions.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {userRole === 'admin' && (
-            <Button type="button" onClick={() => setShowEventTypeDialog(true)}>
-              Add Event Type
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Only render dialogs for admin users */}
-      {userRole === 'admin' && (
-        <>
-          <AdminOptionsDialog
-            isOpen={showCategoryDialog}
-            onClose={() => setShowCategoryDialog(false)}
-            type="category"
-            onAdd={handleAddCategory}
-          />
-          <AdminOptionsDialog
-            isOpen={showEventTypeDialog}
-            onClose={() => setShowEventTypeDialog(false)}
-            type="eventType"
-            onAdd={handleAddEventType}
-          />
-        </>
-      )}
 
       <Button onClick={handleSubmit} className="w-full">
         {mode === "add" ? "Add Event" : "Save Changes"}

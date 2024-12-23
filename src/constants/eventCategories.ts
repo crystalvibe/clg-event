@@ -1,7 +1,13 @@
 // Default initial categories and subcategories
-const DEFAULT_CATEGORIES = ["Technical", "Cultural", "Sports"];
+export const DEFAULT_CATEGORIES = [
+  "Technical",
+  "Cultural",
+  "Sports",
+  "Workshop",
+  "Seminar"
+];
 
-const DEFAULT_SUBCATEGORIES = {
+export const DEFAULT_SUBCATEGORIES = {
   Technical: [
     "Hackathon",
     "Workshop",
@@ -25,6 +31,16 @@ const DEFAULT_SUBCATEGORIES = {
     "Volleyball",
     "Athletics",
     "Chess"
+  ],
+  Workshop: [
+    "Hands-on",
+    "Training",
+    "Certification"
+  ],
+  Seminar: [
+    "Guest Lecture",
+    "Conference",
+    "Symposium"
   ]
 };
 
@@ -58,7 +74,7 @@ export const addNewCategory = (category: string) => {
   }
 };
 
-// Function to add new subcategories
+//Function to add new subcategories
 export const addNewSubcategory = (category: string, subcategory: string) => {
   if (EVENT_SUBCATEGORIES[category] && subcategory.toLowerCase() !== "other") {
     if (!EVENT_SUBCATEGORIES[category].includes(subcategory)) {

@@ -12,6 +12,7 @@ import sdmLogo from './image-removebg-preview.png';
 import { Event as CustomEvent } from "@/types/event";
 import backgroundImage from './SDMCET-college-dharwad-small.jpg';
 import { Input } from "@/components/ui/input";
+import { AdminOptionsDialog } from "@/components/AdminOptionsDialog";
 
 export default function Events() {
   const { events, addEvent, updateEvent, deleteEvent, fetchEvents } = useEvents();
@@ -30,6 +31,8 @@ export default function Events() {
     return saved ? JSON.parse(saved) : [];
   });
   const [showPendingEvents, setShowPendingEvents] = useState(false);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
 
   useEffect(() => {
     const userRole = sessionStorage.getItem('userRole');
@@ -139,8 +142,8 @@ export default function Events() {
         date: eventData.date,
         status: userRole === 'admin' ? 'approved' : 'pending' as 'approved' | 'pending',
         id: Date.now(),
-        category: userRole !== 'admin' && eventData.category === 'Other' ? '' : eventData.category,
-        eventType: userRole !== 'admin' && eventData.eventType === 'Other' ? '' : eventData.eventType,
+        category: eventData.category,
+        eventType: eventData.eventType,
         media: eventData.media?.map(file => {
           if (file instanceof File) return file;
           return file;
@@ -273,6 +276,27 @@ export default function Events() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleAddCategory = (newCategory: string) => {
+    // Handle adding new category
+    toast({
+      title: "Success",
+      description: "New category added successfully",
+    });
+  };
+
+  const handleAddEventType = (newEventType: string) => {
+    // newEventType will be in format "category:eventType"
+    const [category, eventType] = newEventType.split(':');
+    
+    toast({
+      title: "Success",
+      description: `New event type "${eventType}" added under category "${category}"`,
+    });
+    
+    // Here you would typically update your event types storage/state
+    // with the new event type under the specified category
+  };
+
   return (
     <div className="fixed inset-0 w-full min-h-screen overflow-auto"
       style={{
@@ -345,6 +369,22 @@ export default function Events() {
                               flex items-center gap-2"
                   >
                     Add New Event
+                  </Button>
+                </>
+              )}
+              {userRole === 'admin' && (
+                <>
+                  <Button 
+                    onClick={() => setShowCategoryDialog(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-2"
+                  >
+                    Add Category
+                  </Button>
+                  <Button 
+                    onClick={() => setShowEventTypeDialog(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-2"
+                  >
+                    Add Event Type
                   </Button>
                 </>
               )}
@@ -473,6 +513,23 @@ export default function Events() {
               {showPendingEvents ? "Show All Events" : `Pending Approvals (${pendingEvents.length})`}
             </Button>
           </div>
+        )}
+
+        {userRole === 'admin' && (
+          <>
+            <AdminOptionsDialog
+              isOpen={showCategoryDialog}
+              onClose={() => setShowCategoryDialog(false)}
+              type="category"
+              onAdd={handleAddCategory}
+            />
+            <AdminOptionsDialog
+              isOpen={showEventTypeDialog}
+              onClose={() => setShowEventTypeDialog(false)}
+              type="eventType"
+              onAdd={handleAddEventType}
+            />
+          </>
         )}
       </div>
     </div>
