@@ -6,6 +6,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 
+const ADMIN_CREDENTIALS = {
+  username: "admin",
+  password: "admin123" // In production, this should be properly secured
+};
+
 export default function Index() {
   const [role, setRole] = useState<string>("view");
   const [username, setUsername] = useState("");
@@ -15,23 +20,34 @@ export default function Index() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (role === "edit" && !password) {
+    if ((role === "edit" || role === "admin") && !password) {
       toast({
         title: "Error",
-        description: "Password is required for edit access",
+        description: "Password is required for edit/admin access",
         variant: "destructive",
       });
       return;
     }
 
-    // For demo purposes - you would typically validate against a backend
-    if (role === "edit" && username && password) {
-      // Store auth info in sessionStorage
+    // Check for admin credentials
+    if (role === "admin") {
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        sessionStorage.setItem('userRole', 'admin');
+        sessionStorage.setItem('username', username);
+        navigate("/events");
+      } else {
+        toast({
+          title: "Error",
+          description: "Invalid admin credentials",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (role === "edit" && username && password) {
       sessionStorage.setItem('userRole', 'edit');
       sessionStorage.setItem('username', username);
       navigate("/events");
     } else if (role === "view" && username) {
-      // Store auth info in sessionStorage
       sessionStorage.setItem('userRole', 'view');
       sessionStorage.setItem('username', username);
       navigate("/events");
@@ -48,17 +64,18 @@ export default function Index() {
     <div className="min-h-screen bg-gradient-to-b from-red-50 to-slate-50">
       {/* Header */}
       <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-3 flex items-center">
-          <img 
-            src="https://images.unsplash.com/photo-1562774053-701939374585?w=128&h=128&fit=crop"
-            alt="College Logo" 
-            className="h-16 w-16 object-cover rounded-lg shadow-sm"
-          />
-          <div className="ml-4">
-            <h1 className="text-2xl font-bold text-gray-800">
-              College Event Management System
-            </h1>
-            <p className="text-sm text-gray-600">Empowering Academic Excellence</p>
+        <div className="container mx-auto px-4 py-3 flex items-center justify-center">
+          <div className="flex items-center">
+            <img 
+              src="/image.png"
+              alt="College Logo" 
+              className="h-16 w-16 object-cover rounded-lg shadow-sm"
+            />
+            <div className="ml-4">
+              <h1 className="text-2xl font-bold text-gray-800 text-center">
+                College Event Management System
+              </h1>
+            </div>
           </div>
         </div>
       </header>
@@ -99,6 +116,7 @@ export default function Index() {
                 <SelectContent>
                   <SelectItem value="view">View Only</SelectItem>
                   <SelectItem value="edit">Edit</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

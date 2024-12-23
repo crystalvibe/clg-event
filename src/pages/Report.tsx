@@ -15,12 +15,16 @@ import {
 } from "@/components/ui/table";
 import { Event as CustomEvent } from "@/types/event";
 import { toast } from "@/components/ui/use-toast";
+import { LocalizationProvider, DatePicker as MuiDatePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import TextField from '@mui/material/TextField';
+import { Calendar as LucideCalendar } from "lucide-react";
 
 export default function Report() {
   const navigate = useNavigate();
   const { events } = useEvents();
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [coordinator, setCoordinator] = useState("");
   const [venue, setVenue] = useState("");
   const [department, setDepartment] = useState("");
@@ -115,8 +119,8 @@ export default function Report() {
   };
 
   const resetFilters = () => {
-    setStartDate(undefined);
-    setEndDate(undefined);
+    setStartDate("");
+    setEndDate("");
     setCoordinator("");
     setVenue("");
     setDepartment("");
@@ -177,142 +181,163 @@ export default function Report() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-slate-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <div className="fixed inset-0 bg-gradient-to-b from-red-50 to-slate-50">
+      {/* Header Section - Fixed height */}
+      <div className="h-[80px] p-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-800">Generate Reports</h1>
-          <div className="space-x-4">
+          <div className="flex gap-3">
             <Button
               onClick={handleGenerateAllReports}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="primary-button"
             >
               Generate All Reports
             </Button>
             <Button
               onClick={() => navigate("/events")}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="secondary-button"
             >
               Back to Events
             </Button>
           </div>
         </div>
+      </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">Start Date</label>
-              <Calendar
-                mode="single"
-                selected={startDate}
-                onSelect={setStartDate}
-                className="rounded-md border"
-              />
+      {/* Main Content Area */}
+      <div className="fixed top-[80px] bottom-0 left-0 right-0 p-6">
+        <div className="max-w-7xl mx-auto h-full flex flex-col">
+          {/* Filters Section - Fixed height */}
+          <div className="h-[180px] bg-white p-6 rounded-xl shadow-md mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">Filter Events</h2>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleFilter}
+                  className="primary-button"
+                  size="sm"
+                >
+                  Apply
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={resetFilters}
+                  className="secondary-button"
+                  size="sm"
+                >
+                  Reset
+                </Button>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">End Date</label>
-              <Calendar
-                mode="single"
-                selected={endDate}
-                onSelect={setEndDate}
-                className="rounded-md border"
-              />
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Coordinator Name
-                </label>
-                <Input
-                  type="text"
+            <div className="grid grid-cols-5 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-600">Start Date</label>
+                <div className="relative">
+                  <input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                    placeholder="dd-mm-yyyy"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-600">End Date</label>
+                <div className="relative">
+                  <input 
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                    placeholder="dd-mm-yyyy"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-600">Coordinator</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter coordinator"
                   value={coordinator}
                   onChange={(e) => setCoordinator(e.target.value)}
-                  placeholder="Enter coordinator name"
-                  className="w-full"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Venue
-                </label>
-                <Input
-                  type="text"
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-600">Venue</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter venue"
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
-                  placeholder="Enter venue"
-                  className="w-full"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Department
-                </label>
-                <Input
-                  type="text"
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-600">Department</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter department"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="Enter department"
-                  className="w-full"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                 />
               </div>
-              <Button
-                onClick={handleFilter}
-                className="bg-red-600 hover:bg-red-700 text-white w-full"
-              >
-                Apply Filters
-              </Button>
-              <Button
-                onClick={resetFilters}
-                className="bg-gray-600 hover:bg-gray-700 text-white w-full"
-              >
-                Reset Filters
-              </Button>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Event Name</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Venue</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Coordinator</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEvents.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell>{event.title}</TableCell>
-                  <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    {event.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}
-                  </TableCell>
-                  <TableCell>{event.venue || '-'}</TableCell>
-                  <TableCell>{event.department || '-'}</TableCell>
-                  <TableCell>{event.coordinator}</TableCell>
-                  <TableCell>
-                    <Button
-                      onClick={() => handleGenerateReport(event.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      Generate Report
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredEvents.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4">
-                    No events found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {/* Table Section - Takes remaining height */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="h-[60px] p-6">
+              <h2 className="text-xl font-semibold text-gray-800">Events List</h2>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-semibold sticky top-0 bg-gradient-to-b from-red-50 to-slate-50">Event Name</TableHead>
+                    <TableHead className="font-semibold sticky top-0 bg-gradient-to-b from-red-50 to-slate-50">Start Date</TableHead>
+                    <TableHead className="font-semibold sticky top-0 bg-gradient-to-b from-red-50 to-slate-50">End Date</TableHead>
+                    <TableHead className="font-semibold sticky top-0 bg-gradient-to-b from-red-50 to-slate-50">Venue</TableHead>
+                    <TableHead className="font-semibold sticky top-0 bg-gradient-to-b from-red-50 to-slate-50">Department</TableHead>
+                    <TableHead className="font-semibold sticky top-0 bg-gradient-to-b from-red-50 to-slate-50">Coordinator</TableHead>
+                    <TableHead className="font-semibold sticky top-0 bg-gradient-to-b from-red-50 to-slate-50">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredEvents.length > 0 ? (
+                    filteredEvents.map((event) => (
+                      <TableRow key={event.id} className="hover:bg-gray-50/50">
+                        <TableCell className="font-medium">{event.title}</TableCell>
+                        <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {event.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}
+                        </TableCell>
+                        <TableCell>{event.venue || '-'}</TableCell>
+                        <TableCell>{event.department || '-'}</TableCell>
+                        <TableCell>{event.coordinator}</TableCell>
+                        <TableCell>
+                          <Button
+                            onClick={() => handleGenerateReport(event.id!)}
+                            className="primary-button"
+                            size="sm"
+                          >
+                            Generate Report
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        No events found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -42,28 +42,22 @@ export function ParticipantsAndFinance({ formData, setFormData }: ParticipantsAn
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-        <div className="w-full">
-          <label className="text-sm font-medium block mb-1.5">Financial Assistance (Rs)</label>
-          <Input
-            type="number"
-            value={formData.financialAssistance}
-            onChange={(e) => setFormData({ ...formData, financialAssistance: e.target.value })}
-            placeholder="Enter financial assistance"
-            className="w-full"
-          />
-        </div>
         <div className="w-full">
           <label className="text-sm font-medium block mb-1.5">Total Expenses (Rs)</label>
           <Input
             type="number"
             value={formData.totalExpenses}
-            onChange={(e) => setFormData({ ...formData, totalExpenses: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+              setFormData({ ...formData, totalExpenses: value });
+            }}
             placeholder="Enter total expenses"
             className="w-full"
+            min="0"
+            step="1"
           />
         </div>
-      </div>
+    
 
       <div className="w-full">
         <label className="text-sm font-medium block mb-1.5">Description</label>

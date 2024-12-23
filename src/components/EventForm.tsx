@@ -5,14 +5,17 @@ import { DateAndDepartment } from "./event-form/DateAndDepartment";
 import { TeamDetails } from "./event-form/TeamDetails";
 import { ParticipantsAndFinance } from "./event-form/ParticipantsAndFinance";
 import { MediaUpload } from "./event-form/MediaUpload";
+import { toast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EventFormProps {
   onSubmit: (eventData: any) => void;
   initialData?: any;
   mode: "add" | "edit";
+  userRole: string | null;
 }
 
-export function EventForm({ onSubmit, initialData, mode }: EventFormProps) {
+export function EventForm({ onSubmit, initialData, mode, userRole }: EventFormProps) {
   const [category, setCategory] = useState(initialData?.category || "");
   const [eventType, setEventType] = useState(initialData?.eventType || "");
   const [customCategory, setCustomCategory] = useState("");
@@ -22,8 +25,9 @@ export function EventForm({ onSubmit, initialData, mode }: EventFormProps) {
     title: initialData?.title || "",
     category: initialData?.category || "",
     eventType: initialData?.eventType || "",
-    date: initialData?.date || "",
+    startDate: initialData?.date || initialData?.startDate || "",
     endDate: initialData?.endDate || "",
+    timeSlot: initialData?.timeSlot || "",
     department: initialData?.department || "",
     coordinator: initialData?.coordinator || "",
     teamMembers: initialData?.teamMembers || "",
@@ -31,34 +35,59 @@ export function EventForm({ onSubmit, initialData, mode }: EventFormProps) {
     participantsCount: initialData?.participantsCount || "",
     externalParticipants: initialData?.externalParticipants || "",
     sponsoredBy: initialData?.sponsoredBy || "",
-    financialAssistance: initialData?.financialAssistance || "",
     totalExpenses: initialData?.totalExpenses || "",
     description: initialData?.description || "",
     media: initialData?.media || []
   });
 
   const handleSubmit = () => {
-    if (!formData.title || !formData.category || !formData.date) {
+    if (!formData.title || !formData.category || !formData.startDate) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields (Title, Category, and Start Date)",
+        variant: "destructive"
+      });
       return;
     }
     
-    const finalCategory = category === "Other" ? customCategory : category;
-    const finalEventType = eventType === "Other" ? customEventType : eventType;
-    
-    const formattedDate = new Date(formData.date).toISOString();
+    // Format dates as YYYY-MM-DD
+    const formatDate = (dateString: string) => {
+      if (!dateString) return undefined;
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    };
     
     onSubmit({
       ...formData,
+      date: formatDate(formData.startDate),
+      startDate: formatDate(formData.startDate),
+      endDate: formData.endDate ? formatDate(formData.endDate) : undefined,
       title: formData.title.trim(),
-      date: formattedDate,
-      category: finalCategory,
-      eventType: finalEventType,
+      category: category === "Other" ? customCategory : category,
+      eventType: eventType === "Other" ? customEventType : eventType,
       coordinator: formData.coordinator.trim()
     });
   };
 
+  const categoryOptions = [
+    "Technical",
+    "Cultural",
+    "Sports",
+    "Workshop",
+    "Seminar",
+    ...(userRole === 'admin' ? ["OTHER"] : [])
+  ];
+
+  const eventTypeOptions = [
+    "College Level",
+    "Department Level",
+    "National Level",
+    "International Level",
+    ...(userRole === 'admin' ? ["OTHER"] : [])
+  ];
+
   return (
-    <div className="space-y-6 max-h-[70vh] overflow-y-auto px-1">
+    <div className="space-y-8 max-h-[70vh] overflow-y-auto px-1">
       <BasicEventDetails
         formData={formData}
         setFormData={setFormData}
@@ -82,15 +111,17 @@ export function EventForm({ onSubmit, initialData, mode }: EventFormProps) {
         setFormData={setFormData}
       />
       
-      <ParticipantsAndFinance
-        formData={formData}
-        setFormData={setFormData}
-      />
+      <div className="space-y-6">
+        <ParticipantsAndFinance
+          formData={formData}
+          setFormData={setFormData}
+        />
 
-      <MediaUpload
-        formData={formData}
-        setFormData={setFormData}
-      />
+        <MediaUpload
+          formData={formData}
+          setFormData={setFormData}
+        />
+      </div>
 
       <Button onClick={handleSubmit} className="w-full">
         {mode === "add" ? "Add Event" : "Save Changes"}

@@ -151,7 +151,7 @@ export function BasicEventDetails({
               <SelectValue placeholder="Select event type" />
             </SelectTrigger>
             <SelectContent>
-              {[...getEventTypes(), "Other"].map((type) => (
+              {getEventTypes().map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
                 </SelectItem>

@@ -12,7 +12,6 @@ export default function Dashboard() {
   const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
-    // Get all unique categories from both EVENT_CATEGORIES and existing events
     const eventCategories = events.map(event => event.category);
     const storedCategories = JSON.parse(localStorage.getItem("eventCategories") || "[]");
     const allCategories = Array.from(new Set([
@@ -22,11 +21,12 @@ export default function Dashboard() {
     ])).filter(category => category !== "Other" && category !== "");
 
     setCategories(allCategories);
-  }, [events]); // Add events as a dependency to update when events change
+  }, [events]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-slate-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="fixed inset-0 bg-gradient-to-b from-red-50 to-slate-50">
+      <div className="h-full w-full max-w-6xl mx-auto p-8 flex flex-col">
+        {/* Header Section */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
           <Button 
@@ -39,10 +39,11 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Content Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-min">
           <Card className="transform transition-all duration-300 hover:scale-105 
                          shadow-[0_4px_12px_rgba(220,38,38,0.15)] hover:shadow-[0_8px_24px_rgba(220,38,38,0.25)] 
-                         bg-white/90 backdrop-blur">
+                         bg-white/90 backdrop-blur h-[160px]">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-800">
                 Total Events
@@ -58,7 +59,7 @@ export default function Dashboard() {
               key={category}
               className="transform transition-all duration-300 hover:scale-105 
                          shadow-[0_4px_12px_rgba(220,38,38,0.15)] hover:shadow-[0_8px_24px_rgba(220,38,38,0.25)] 
-                         bg-white/90 backdrop-blur"
+                         bg-white/90 backdrop-blur h-[160px]"
             >
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-gray-800">
