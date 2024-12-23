@@ -1,3 +1,5 @@
+import { EVENT_CATEGORIES } from "@/constants/eventCategories";
+
 interface MediaItem {
   name: string;
   type: string;
@@ -6,6 +8,8 @@ interface MediaItem {
   data?: string;
   file?: File;
 }
+
+export type EventCategory = typeof EVENT_CATEGORIES[number];
 
 export interface Event {
   id?: number;

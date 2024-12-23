@@ -1,5 +1,5 @@
 // Default initial categories and subcategories
-const DEFAULT_CATEGORIES = ["Technical", "Cultural", "Sports", "Other"];
+const DEFAULT_CATEGORIES = ["Technical", "Cultural", "Sports"];
 
 const DEFAULT_SUBCATEGORIES = {
   Technical: [
@@ -8,8 +8,7 @@ const DEFAULT_SUBCATEGORIES = {
     "Coding Competition",
     "Project Exhibition",
     "Technical Quiz",
-    "Paper Presentation",
-    "Other"
+    "Paper Presentation"
   ],
   Cultural: [
     "Dance",
@@ -17,8 +16,7 @@ const DEFAULT_SUBCATEGORIES = {
     "Drama",
     "Fashion Show",
     "Art Exhibition",
-    "Photography",
-    "Other"
+    "Photography"
   ],
   Sports: [
     "Cricket",
@@ -26,10 +24,8 @@ const DEFAULT_SUBCATEGORIES = {
     "Basketball",
     "Volleyball",
     "Athletics",
-    "Chess",
-    "Other"
-  ],
-  Other: ["Other"]
+    "Chess"
+  ]
 };
 
 // Load categories from localStorage or use defaults
@@ -57,14 +53,14 @@ const saveToStorage = () => {
 export const addNewCategory = (category: string) => {
   if (!EVENT_CATEGORIES.includes(category)) {
     EVENT_CATEGORIES.push(category);
-    EVENT_SUBCATEGORIES[category] = ["Other"];
+    EVENT_SUBCATEGORIES[category] = [];
     saveToStorage();
   }
 };
 
 // Function to add new subcategories
 export const addNewSubcategory = (category: string, subcategory: string) => {
-  if (EVENT_SUBCATEGORIES[category]) {
+  if (EVENT_SUBCATEGORIES[category] && subcategory.toLowerCase() !== "other") {
     if (!EVENT_SUBCATEGORIES[category].includes(subcategory)) {
       EVENT_SUBCATEGORIES[category].push(subcategory);
       saveToStorage();

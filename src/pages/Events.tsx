@@ -139,6 +139,8 @@ export default function Events() {
         date: eventData.date,
         status: userRole === 'admin' ? 'approved' : 'pending' as 'approved' | 'pending',
         id: Date.now(),
+        category: userRole !== 'admin' && eventData.category === 'Other' ? '' : eventData.category,
+        eventType: userRole !== 'admin' && eventData.eventType === 'Other' ? '' : eventData.eventType,
         media: eventData.media?.map(file => {
           if (file instanceof File) return file;
           return file;
@@ -433,7 +435,12 @@ export default function Events() {
             <DialogHeader>
               <DialogTitle>Add New Event</DialogTitle>
             </DialogHeader>
-            <EventForm onSubmit={handleAddEvent} mode="add" userRole={userRole} />
+            <EventForm 
+              onSubmit={handleAddEvent} 
+              mode="add" 
+              userRole={userRole} 
+              showOtherOptions={userRole === 'admin'}
+            />
           </DialogContent>
         </Dialog>
 

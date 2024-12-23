@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EVENT_CATEGORIES, EVENT_SUBCATEGORIES, addNewCategory, addNewSubcategory } from "@/constants/eventCategories";
@@ -14,6 +15,8 @@ interface BasicEventDetailsProps {
   setCustomCategory: (category: string) => void;
   customEventType: string;
   setCustomEventType: (eventType: string) => void;
+  userRole?: string | null;
+  mode?: "add" | "edit";
 }
 
 export function BasicEventDetails({
@@ -27,15 +30,34 @@ export function BasicEventDetails({
   setCustomCategory,
   customEventType,
   setCustomEventType,
+  userRole,
+  mode
 }: BasicEventDetailsProps) {
+  const categoryOptions = [
+    "Technical",
+    "Cultural",
+    "Sports",
+    "Workshop",
+    "Seminar"
+  ];
+
+  const getEventTypes = () => {
+    if (category === "Other") return [];
+    const baseTypes = EVENT_SUBCATEGORIES[category] || [];
+    return baseTypes.filter(type => type.toLowerCase() !== "other");
+  };
+
   const handleCategoryChange = (value: string) => {
-    console.log("Category changed to:", value);
     setCategory(value);
-    if (value !== "Other") {
-      setFormData({ ...formData, category: value, eventType: "" });
-      setCustomCategory("");
-      setEventType("");
-    }
+    setFormData({ ...formData, category: value, eventType: "" });
+    setCustomCategory("");
+    setEventType("");
+  };
+
+  const handleEventTypeChange = (value: string) => {
+    setEventType(value);
+    setFormData({ ...formData, eventType: value });
+    setCustomEventType("");
   };
 
   const handleCustomCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,15 +76,6 @@ export function BasicEventDetails({
         title: "Category Added",
         description: `${customCategory} has been added to the categories list.`
       });
-    }
-  };
-
-  const handleEventTypeChange = (value: string) => {
-    console.log("Event type changed to:", value);
-    setEventType(value);
-    if (value !== "Other") {
-      setFormData({ ...formData, eventType: value });
-      setCustomEventType("");
     }
   };
 
@@ -85,10 +98,18 @@ export function BasicEventDetails({
     }
   };
 
-  const getEventTypes = () => {
-    if (category === "Other") return [];
-    return EVENT_SUBCATEGORIES[category] || [];
-  };
+  React.useEffect(() => {
+    if (mode === "edit") {
+      if (category === "Other") {
+        setCategory("");
+        setFormData({ ...formData, category: "" });
+      }
+      if (eventType === "Other") {
+        setEventType("");
+        setFormData({ ...formData, eventType: "" });
+      }
+    }
+  }, [mode]);
 
   return (
     <div className="space-y-4 w-full">
@@ -122,14 +143,14 @@ export function BasicEventDetails({
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
-            {EVENT_CATEGORIES.map((cat) => (
+            {categoryOptions.map((cat) => (
               <SelectItem key={cat} value={cat}>
                 {cat}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {category === "Other" && (
+        {category === "Other" && mode !== 'edit' && (
           <Input
             className="mt-2 w-full"
             placeholder="Enter new category"
@@ -158,15 +179,6 @@ export function BasicEventDetails({
               ))}
             </SelectContent>
           </Select>
-          {eventType === "Other" && (
-            <Input
-              className="mt-2 w-full"
-              placeholder="Enter new event type"
-              value={customEventType}
-              onChange={handleCustomEventTypeChange}
-              onBlur={handleCustomEventTypeBlur}
-            />
-          )}
         </div>
       )}
 
