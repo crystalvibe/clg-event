@@ -165,19 +165,57 @@ const dbConfig = {
 }; 
 
 export const getAllCategories = async (): Promise<string[]> => {
-  const db: any = await openDB();
-  const transaction = db.transaction('categories', 'readonly');
-  const store = transaction.objectStore('categories');
-  const categories = await store.getAll();
-  return categories.map((cat: { name: string }) => cat.name);
+  try {
+    const db: any = await openDB();
+    const transaction = db.transaction('categories', 'readonly');
+    const store = transaction.objectStore('categories');
+    const request = store.getAll();
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        const categories = request.result;
+        if (!Array.isArray(categories)) {
+          resolve([]);
+          return;
+        }
+        resolve(categories.map((cat: { name: string }) => cat.name));
+      };
+      request.onerror = () => {
+        console.error('Error fetching categories:', request.error);
+        resolve([]); // Return empty array on error
+      };
+    });
+  } catch (error) {
+    console.error('Error in getAllCategories:', error);
+    return []; // Return empty array if anything fails
+  }
 };
 
 export const getAllEventTypes = async (): Promise<string[]> => {
-  const db: any = await openDB();
-  const transaction = db.transaction('eventTypes', 'readonly');
-  const store = transaction.objectStore('eventTypes');
-  const types = await store.getAll();
-  return types.map((type: { name: string }) => type.name);
+  try {
+    const db: any = await openDB();
+    const transaction = db.transaction('eventTypes', 'readonly');
+    const store = transaction.objectStore('eventTypes');
+    const request = store.getAll();
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        const types = request.result;
+        if (!Array.isArray(types)) {
+          resolve([]);
+          return;
+        }
+        resolve(types.map((type: { name: string }) => type.name));
+      };
+      request.onerror = () => {
+        console.error('Error fetching event types:', request.error);
+        resolve([]); // Return empty array on error
+      };
+    });
+  } catch (error) {
+    console.error('Error in getAllEventTypes:', error);
+    return []; // Return empty array if anything fails
+  }
 };
 
 export const addCategory = async (categoryName: string): Promise<void> => {
@@ -185,6 +223,9 @@ export const addCategory = async (categoryName: string): Promise<void> => {
   const transaction = db.transaction('categories', 'readwrite');
   const store = transaction.objectStore('categories');
   await store.add({ name: categoryName });
+  
+  // Dispatch custom event after successful addition
+  window.dispatchEvent(new CustomEvent('categoriesUpdated'));
 };
 
 export const addEventType = async (typeName: string): Promise<void> => {
@@ -192,4 +233,7 @@ export const addEventType = async (typeName: string): Promise<void> => {
   const transaction = db.transaction('eventTypes', 'readwrite');
   const store = transaction.objectStore('eventTypes');
   await store.add({ name: typeName });
+  
+  // Dispatch custom event after successful addition
+  window.dispatchEvent(new CustomEvent('eventTypesUpdated'));
 }; 

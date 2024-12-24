@@ -13,6 +13,9 @@ import { Event as CustomEvent } from "@/types/event";
 import backgroundImage from './SDMCET-college-dharwad-small.jpg';
 import { Input } from "@/components/ui/input";
 import { AdminOptionsDialog } from "@/components/AdminOptionsDialog";
+import { AdminDepartmentDialog } from "@/components/AdminDepartmentDialog";
+import { DEFAULT_SUBCATEGORIES } from "@/constants/eventCategories";
+import { getAllCategories, getAllEventTypes, addCategory as addCategoryToDb, addEventType as addEventTypeToDb } from "@/utils/indexedDB";
 
 export default function Events() {
   const { events, addEvent, updateEvent, deleteEvent, fetchEvents } = useEvents();
@@ -33,6 +36,18 @@ export default function Events() {
   const [showPendingEvents, setShowPendingEvents] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
+  const [showDepartmentDialog, setShowDepartmentDialog] = useState(false);
+  const [departments, setDepartments] = useState<string[]>(["CSE", "EEE", "ECE", "MECHANICAL", "CHEMICAL"]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [eventTypes, setEventTypes] = useState<Record<string, string[]>>({});
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [adminChanges, setAdminChanges] = useState({
+    categories: [] as string[],
+    eventTypes: {} as Record<string, string[]>,
+    departments: [] as string[]
+  });
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
     const userRole = sessionStorage.getItem('userRole');
@@ -297,6 +312,115 @@ export default function Events() {
     // with the new event type under the specified category
   };
 
+  const handleAddDepartment = (newDepartment: string) => {
+    // You might want to add API call here to persist the department
+    toast({
+      title: "Success",
+      description: `Department "${newDepartment}" added successfully`,
+    });
+  };
+
+  const addCategory = async (category: string) => {
+    await addCategoryToDb(category);
+    const newCategories = await getAllCategories();
+    setCategories(newCategories);
+  };
+
+  const addEventType = async (eventType: string) => {
+    await addEventTypeToDb(eventType);
+    const [category, type] = eventType.split(':');
+    setEventTypes(prev => ({
+      ...prev,
+      [category]: [...(prev[category] || []), type]
+    }));
+  };
+
+  const refetchCategories = async () => {
+    // If you have an API, fetch updated categories here
+    // For now, we're using state directly
+    return Promise.resolve();
+  };
+
+  const refetchEventTypes = async () => {
+    // If you have an API, fetch updated event types here
+    return Promise.resolve();
+  };
+
+  const addDepartment = async (department: string) => {
+    setDepartments(prev => [...prev, department]);
+    // If you have an API call, make it here
+  };
+
+  const refetchDepartments = async () => {
+    // If you have an API, fetch updated departments here
+    return Promise.resolve();
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const loadedCategories = await getAllCategories();
+        const loadedEventTypes = await getAllEventTypes();
+        setCategories(loadedCategories);
+        // Convert event types array to record structure
+        const eventTypesRecord: Record<string, string[]> = {};
+        loadedEventTypes.forEach(type => {
+          const [category, eventType] = type.split(':');
+          if (!eventTypesRecord[category]) {
+            eventTypesRecord[category] = [];
+          }
+          eventTypesRecord[category].push(eventType);
+        });
+        setEventTypes(eventTypesRecord);
+      } catch (error) {
+        console.error('Error loading categories and event types:', error);
+      }
+    };
+
+    loadData();
+
+    // Listen for updates
+    window.addEventListener('categoriesUpdated', loadData);
+    window.addEventListener('eventTypesUpdated', loadData);
+
+    return () => {
+      window.removeEventListener('categoriesUpdated', loadData);
+      window.removeEventListener('eventTypesUpdated', loadData);
+    };
+  }, []);
+
+  // Sync the modes
+  useEffect(() => {
+    if (isAdminMode) {
+      setIsEditMode(true);
+    }
+  }, [isAdminMode]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setIsAdminMode(false);
+    }
+  }, [isEditMode]);
+
+  useEffect(() => {
+    if (isAdminMode) {
+      setShowCategoryDialog(true);
+      setShowEventTypeDialog(true);
+      setIsEditMode(true);
+    } else {
+      setShowCategoryDialog(false);
+      setShowEventTypeDialog(false);
+    }
+  }, [isAdminMode]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setIsAdminMode(false);
+      setShowCategoryDialog(false);
+      setShowEventTypeDialog(false);
+    }
+  }, [isEditMode]);
+
   return (
     <div className="fixed inset-0 w-full min-h-screen overflow-auto"
       style={{
@@ -385,6 +509,12 @@ export default function Events() {
                     className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-2"
                   >
                     Add Event Type
+                  </Button>
+                  <Button 
+                    onClick={() => setShowDepartmentDialog(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-2"
+                  >
+                    Add Department
                   </Button>
                 </>
               )}
@@ -494,6 +624,9 @@ export default function Events() {
               initialData={selectedEvent} 
               mode="edit" 
               userRole={userRole}
+              departments={departments}
+              categories={categories}
+              eventTypes={eventTypes}
             />
           </DialogContent>
         </Dialog>
@@ -520,14 +653,39 @@ export default function Events() {
             <AdminOptionsDialog
               isOpen={showCategoryDialog}
               onClose={() => setShowCategoryDialog(false)}
+              isAdminMode={isAdminMode}
+              setIsAdminMode={setIsAdminMode}
               type="category"
-              onAdd={handleAddCategory}
+              onAdminChange={(newValue) => {
+                setAdminChanges(prev => ({
+                  ...prev,
+                  categories: [...prev.categories, newValue]
+                }));
+              }}
             />
             <AdminOptionsDialog
               isOpen={showEventTypeDialog}
               onClose={() => setShowEventTypeDialog(false)}
+              isAdminMode={isAdminMode}
+              setIsAdminMode={setIsAdminMode}
               type="eventType"
-              onAdd={handleAddEventType}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              onAdminChange={(newValue) => {
+                setAdminChanges(prev => ({
+                  ...prev,
+                  eventTypes: {
+                    ...prev.eventTypes,
+                    [selectedCategory]: [...(prev.eventTypes[selectedCategory] || []), newValue]
+                  }
+                }));
+              }}
+            />
+            <AdminDepartmentDialog
+              isOpen={showDepartmentDialog}
+              onClose={() => setShowDepartmentDialog(false)}
+              isEditMode={isEditMode}
+              setIsEditMode={setIsEditMode}
             />
           </>
         )}

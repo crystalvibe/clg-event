@@ -4,43 +4,42 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DEFAULT_SUBCATEGORIES } from "@/constants/eventCategories";
+import { toast } from "react-hot-toast";
 
 interface AdminOptionsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   type: "category" | "eventType";
-  onAdd: (value: string) => void;
+  onAdminChange: (value: string) => void;
+  selectedCategory?: string;
+  onSelectCategory?: (category: string) => void;
 }
 
-export function AdminOptionsDialog({ isOpen, onClose, type, onAdd }: AdminOptionsDialogProps) {
+export function AdminOptionsDialog({
+  isOpen,
+  onClose,
+  type,
+  onAdminChange,
+  selectedCategory,
+  onSelectCategory,
+}: AdminOptionsDialogProps) {
   const [newValue, setNewValue] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
   const categories = Object.keys(DEFAULT_SUBCATEGORIES);
   
   // Get existing event types for the selected category
   const existingEventTypes = selectedCategory ? DEFAULT_SUBCATEGORIES[selectedCategory as keyof typeof DEFAULT_SUBCATEGORIES] || [] : [];
 
-  const handleSubmit = () => {
-    if (type === "eventType" && !selectedCategory) {
-      alert("Please select a category first");
-      return;
-    }
-    
-    if (newValue.trim()) {
-      // Check if event type already exists
-      if (type === "eventType" && existingEventTypes.includes(newValue.trim())) {
-        alert("This event type already exists in the selected category");
-        return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (newValue.trim()) {
+        onAdminChange(newValue.trim());
+        setNewValue("");
+        onClose();
+        toast.success('Option added successfully');
       }
-
-      if (type === "eventType") {
-        onAdd(`${selectedCategory}:${newValue.trim()}`);
-      } else {
-        onAdd(newValue.trim());
-      }
-      setNewValue("");
-      setSelectedCategory("");
-      onClose();
+    } catch (error) {
+      toast.error('Failed to add option');
     }
   };
 
@@ -48,12 +47,16 @@ export function AdminOptionsDialog({ isOpen, onClose, type, onAdd }: AdminOption
   useEffect(() => {
     if (!isOpen) {
       setNewValue("");
-      setSelectedCategory("");
+      onSelectCategory?.("");
     }
   }, [isOpen]);
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -67,7 +70,7 @@ export function AdminOptionsDialog({ isOpen, onClose, type, onAdd }: AdminOption
                 <label className="text-sm font-medium">Select Category</label>
                 <Select
                   value={selectedCategory}
-                  onValueChange={setSelectedCategory}
+                  onValueChange={onSelectCategory}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose a category" />

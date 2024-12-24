@@ -15,8 +15,10 @@ interface BasicEventDetailsProps {
   setCustomCategory: (category: string) => void;
   customEventType: string;
   setCustomEventType: (eventType: string) => void;
-  userRole?: string | null;
-  mode?: "add" | "edit";
+  userRole: string | null;
+  mode: "add" | "edit";
+  categories?: string[];
+  eventTypes?: Record<string, string[]>;
 }
 
 export function BasicEventDetails({
@@ -31,13 +33,15 @@ export function BasicEventDetails({
   customEventType,
   setCustomEventType,
   userRole,
-  mode
+  mode,
+  categories = [],
+  eventTypes = {}
 }: BasicEventDetailsProps) {
-  const categoryOptions = DEFAULT_CATEGORIES;
+  const categoryOptions = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
 
   const getEventTypes = () => {
     if (!category) return [];
-    const types = EVENT_SUBCATEGORIES[category] || [];
+    const types = eventTypes[category] || EVENT_SUBCATEGORIES[category] || [];
     return types.filter(type => type !== "Other");
   };
 

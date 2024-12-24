@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BasicEventDetails } from "./event-form/BasicEventDetails";
 import { DateAndDepartment } from "./event-form/DateAndDepartment";
 import { TeamDetails } from "./event-form/TeamDetails";
@@ -9,6 +9,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminOptionsDialog } from "./AdminOptionsDialog";
 import { DEFAULT_CATEGORIES, EVENT_SUBCATEGORIES } from "@/constants/eventCategories";
+import { getAllCategories, getAllEventTypes } from "@/utils/indexedDB";
 
 interface EventFormProps {
   onSubmit: (eventData: any) => void;
@@ -16,9 +17,12 @@ interface EventFormProps {
   mode: "add" | "edit";
   userRole: string | null;
   showOtherOptions?: boolean;
+  departments?: string[];
+  categories?: string[];
+  eventTypes?: Record<string, string[]>;
 }
 
-export function EventForm({ onSubmit, initialData, mode, userRole, showOtherOptions = false }: EventFormProps) {
+export function EventForm({ onSubmit, initialData, mode, userRole, showOtherOptions = false, departments = [], categories = [], eventTypes = {} }: EventFormProps) {
   const [category, setCategory] = useState(initialData?.category || "");
   const [eventType, setEventType] = useState(initialData?.eventType || "");
   const [customCategory, setCustomCategory] = useState("");
@@ -45,6 +49,34 @@ export function EventForm({ onSubmit, initialData, mode, userRole, showOtherOpti
 
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [showEventTypeDialog, setShowEventTypeDialog] = useState(false);
+
+  useEffect(() => {
+    const handleCategoriesUpdate = () => {
+      getAllCategories().then(newCategories => {
+        setFormData(prev => ({
+          ...prev,
+          category: prev.category || ""
+        }));
+      });
+    };
+
+    const handleEventTypesUpdate = () => {
+      getAllEventTypes().then(newEventTypes => {
+        setFormData(prev => ({
+          ...prev,
+          eventType: prev.eventType || ""
+        }));
+      });
+    };
+
+    window.addEventListener('categoriesUpdated', handleCategoriesUpdate);
+    window.addEventListener('eventTypesUpdated', handleEventTypesUpdate);
+
+    return () => {
+      window.removeEventListener('categoriesUpdated', handleCategoriesUpdate);
+      window.removeEventListener('eventTypesUpdated', handleEventTypesUpdate);
+    };
+  }, []);
 
   const handleAddCategory = (newCategory: string) => {
     console.log('New category added:', newCategory);
@@ -98,11 +130,14 @@ export function EventForm({ onSubmit, initialData, mode, userRole, showOtherOpti
         setCustomEventType={setCustomEventType}
         userRole={userRole}
         mode={mode}
+        categories={categories}
+        eventTypes={eventTypes}
       />
       
       <DateAndDepartment
         formData={formData}
         setFormData={setFormData}
+        userRole={userRole}
       />
       
       <TeamDetails
